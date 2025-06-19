@@ -20,7 +20,6 @@ Okay this is the greatest feature of them all. You can add your Emotes and edit 
 
 * To use emotes, type .me in to console.
 It will show avalible emotes.
-(No need to type ! or [Perm])
 
 * How to add custom emote?
 You simply add them by having somewhere in your schematic name `!`.
