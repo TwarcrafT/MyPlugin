@@ -22,7 +22,7 @@ Okay this is the greatest feature of them all. You can add your Emotes and edit 
 It will show avalible emotes.
 
 * How to add custom emote?
-You simply add them by having somewhere in your schematic name `!`.
+You simply add them by having somewhere in your schematic name `!` and permission at the end "[Perm]".
 
 How can I change permission of Emote?
 You can change it by adding somewhere in your schematic name letters like in example:
