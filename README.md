@@ -1,5 +1,5 @@
 # MyPlugin.dll
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/Saskyc/MyPlugin.dll/total) ![GitHub Release](https://img.shields.io/github.com/TwarcrafT/MyPlugin/releases)
+![GitHub Release](https://img.shields.io/github.com/TwarcrafT/MyPlugin/releases)
 
 ### Download before using
 https://github.com/Michal78900/ProjectMER
