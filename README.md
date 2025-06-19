@@ -19,9 +19,9 @@ https://www.youtube.com/watch?v=h62CoXCAb44
 Okay this is the greatest feature of them all. You can add your Emotes and edit permissions of those emotes.
 SCPs are not in the permissions but enough people would ask for this feature it will be added.
 
-* To use emotes, write .me in to console.
+* To use emotes, type .me in to console.
 It will show avalible emotes.
-(No need to write ! or [Perm])
+(No need to type ! or [Perm])
 
 * How to add custom emote?
 You simply add them by having somewhere in your schematic name `!`.
