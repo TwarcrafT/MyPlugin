@@ -56,3 +56,7 @@ Doors are only openable while looking at the door button.
 
 ### Keycard information
 You can make people see information who is the owner of keycards
+
+### Oryginal Autor
+https://github.com/Saskyc/MyPlugin.dll
+I got green light to update this plugin
