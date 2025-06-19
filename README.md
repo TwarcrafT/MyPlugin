@@ -39,12 +39,12 @@ You can change it by adding somewhere in your schematic name letters like in exa
 
 * All permissions are:
 ```cs
-[NONE] everyone have acess to use the Emote even SCPs you
-[CD] ClassD have acess to use the Emote
-[SC] Scientist have acess to use the Emote
-[CH] All Chaos have acess to use the Emote
-[NTF] All MFO have acess to use the Emote
-[SCP] SCP have acess to use the Emote
+[NONE] everyone have access to use the Emote even SCPs you
+[CD] ClassD have access to use the Emote
+[SC] Scientist have access to use the Emote
+[CH] All Chaos have access to use the Emote
+[NTF] All MFO have access to use the Emote
+[SCP] SCP have access to use the Emote
 more permissions can be added/edit
 ```
 
