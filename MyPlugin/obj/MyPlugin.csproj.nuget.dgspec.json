@@ -1,0 +1,70 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\twarc\\Desktop\\C#PLUGINS_SCPSL\\MyPluginSTABLE\\MyPlugin.dll-master\\MyPlugin\\MyPlugin.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\twarc\\Desktop\\C#PLUGINS_SCPSL\\MyPluginSTABLE\\MyPlugin.dll-master\\MyPlugin\\MyPlugin.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\twarc\\Desktop\\C#PLUGINS_SCPSL\\MyPluginSTABLE\\MyPlugin.dll-master\\MyPlugin\\MyPlugin.csproj",
+        "projectName": "MyPlugin",
+        "projectPath": "C:\\Users\\twarc\\Desktop\\C#PLUGINS_SCPSL\\MyPluginSTABLE\\MyPlugin.dll-master\\MyPlugin\\MyPlugin.csproj",
+        "packagesPath": "C:\\Users\\twarc\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\twarc\\Desktop\\C#PLUGINS_SCPSL\\MyPluginSTABLE\\MyPlugin.dll-master\\MyPlugin\\obj\\",
+        "projectStyle": "PackageReference",
+        "skipContentFileWrite": true,
+        "UsingMicrosoftNETSdk": false,
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\twarc\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net48"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net48": {
+            "projectReferences": {}
+          }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net48": {
+          "dependencies": {
+            "ExMod.Exiled": {
+              "target": "Package",
+              "version": "[9.6.0, )"
+            }
+          }
+        }
+      },
+      "runtimes": {
+        "win": {
+          "#import": []
+        },
+        "win-arm64": {
+          "#import": []
+        },
+        "win-x64": {
+          "#import": []
+        },
+        "win-x86": {
+          "#import": []
+        }
+      }
+    }
+  }
+}
