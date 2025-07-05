@@ -1,59 +1,110 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Exiled.CustomItems;
 using Exiled.API.Features;
 using Exiled.API.Interfaces;
-using System.Reflection;
-using CommandSystem;
-using Exiled.CustomRoles;
-using Exiled.API.Enums;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-using Exiled.Events;
-//using MyPlugin.CustomThings;
+using System.Collections.Generic;
 using Exiled.Events.EventArgs.Player;
-using MyPlugin.EventHandlers;
-using ProjectMER.Features.Objects;
+using UnityEngine; 
+
 
 namespace MyPlugin
 {
-    public class MyPlugin : Exiled.API.Features.Plugin<Config>
+    public class MyPlugin : Plugin<Config>
     {
-        public Dictionary<Player, int> DictionaryName = new();
-        //Use this to edit it after
-        //If (MyPluginDict[ev.Player] == 1)
-        //MyPluginDict[ev.Player] = 0;
-        public Dictionary<ushort, int> TaserMode = new();
-        public Dictionary<ushort, int> CustomItemMode = new();
-        public Dictionary<ushort, string> CustomItemOwner = new();
-        public Dictionary<ushort, SchematicObject> SchematicsToDestroy = new();
+        public static MyPlugin Instance { get; private set; }
 
-        public Dictionary<Player, int> CustomItemModeRole = new();
-        public Dictionary<Player, SchematicObject> SchematicsToDestroyRole = new();
-        public Dictionary<Player, SchematicObject> SchematicsToDestroyCommand = new();
-        public Dictionary<string, string> SomeElement = new();
-        public Dictionary<Player, int> BinCooldown = new();
-        public static MyPlugin Instance;
+        public override string Name => "MyPlugin";
+        public override string Author => "pawelek7650"; 
+        public override Version Version => new Version(2, 0, 1); 
+        public override Version RequiredExiledVersion => new Version(9, 6, 0);
+
+        public Dictionary<Player, ProjectMER.Features.Objects.SchematicObject> SchematicsToDestroyCommand { get; } =
+            new Dictionary<Player, ProjectMER.Features.Objects.SchematicObject>();
+
         public override void OnEnabled()
         {
             Instance = this;
-            Exiled.CustomItems.API.Features.CustomItem.RegisterItems();
-            Exiled.CustomRoles.API.Features.CustomRole.RegisterRoles(false, null);
-            PlayerEv.Subscribe();
+            RegisterEvents();
+
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
+            UnRegisterEvents();
+
+            foreach (var schematic in SchematicsToDestroyCommand.Values)
+            {
+                if (schematic != null && schematic.gameObject != null)
+                {
+                    schematic.Destroy();
+                }
+            }
+            SchematicsToDestroyCommand.Clear();
+
             Instance = null;
-            Exiled.CustomItems.API.Features.CustomItem.UnregisterItems();
-            Exiled.CustomRoles.API.Features.CustomRole.UnregisterRoles();
-            PlayerEv.Unsubscribe();
             base.OnDisabled();
         }
+
+        private void RegisterEvents()
+        {
+            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
+            Exiled.Events.Handlers.Player.Left += OnLeft;
+            Exiled.Events.Handlers.Player.Died += OnDied; 
+        }
+
+        private void UnRegisterEvents()
+        {
+            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
+            Exiled.Events.Handlers.Player.Left -= OnLeft;
+            Exiled.Events.Handlers.Player.Died -= OnDied;
+        }
+
+
+        private void OnChangingRole(ChangingRoleEventArgs ev)
+        {
+            if (SchematicsToDestroyCommand.TryGetValue(ev.Player, out ProjectMER.Features.Objects.SchematicObject schematic))
+            {
+                if (schematic != null && schematic.gameObject != null)
+                {
+                    schematic.Destroy();
+                }
+                SchematicsToDestroyCommand.Remove(ev.Player);
+                if (Config.Debug) Log.Debug($"[MyPlugin] [OnChangingRole] Destroyed schematic for {ev.Player.Nickname} due to role change.");
+            }
+        }
+
+        private void OnLeft(LeftEventArgs ev)
+        {
+            if (SchematicsToDestroyCommand.TryGetValue(ev.Player, out ProjectMER.Features.Objects.SchematicObject schematic))
+            {
+                if (schematic != null && schematic.gameObject != null)
+                {
+                    schematic.Destroy();
+                }
+                SchematicsToDestroyCommand.Remove(ev.Player);
+                if (Config.Debug) Log.Debug($"[MyPlugin] [OnLeft] Destroyed schematic for {ev.Player.Nickname} due to leaving.");
+            }
+        }
+
+        private void OnDied(DiedEventArgs ev)
+        {
+            if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] Player {ev.Player.Nickname} ({ev.Player.Id}) died. Checking for schematic.");
+
+            if (SchematicsToDestroyCommand.TryGetValue(ev.Player, out ProjectMER.Features.Objects.SchematicObject schematic))
+            {
+                if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] Found schematic for {ev.Player.Nickname}. Destroying...");
+                if (schematic != null && schematic.gameObject != null)
+                {
+                    schematic.Destroy(); 
+                }
+                SchematicsToDestroyCommand.Remove(ev.Player); 
+                if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] Schematic for {ev.Player.Nickname} destroyed.");
+            }
+            else
+            {
+                if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] No schematic found for {ev.Player.Nickname}.");
+            }
+        }
+
     }
-    
 }

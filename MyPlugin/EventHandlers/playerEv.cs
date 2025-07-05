@@ -3,7 +3,6 @@ using Exiled.Events.EventArgs.Player;
 using UnityEngine; // For Physics.Raycast
 using MyPlugin; //config
 using Exiled.API.Enums; // For ItemType
-using System.Collections.Generic; 
 
 namespace MyPlugin.EventHandlers;
 
