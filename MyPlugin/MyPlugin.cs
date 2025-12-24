@@ -2,9 +2,10 @@
 using Exiled.API.Features;
 using Exiled.API.Interfaces;
 using System.Collections.Generic;
-using Exiled.Events.EventArgs.Player;
-using UnityEngine; 
+using MyPlugin.EventHandlers;
 
+using Exiled.Events.EventArgs.Player;
+using UnityEngine;
 
 namespace MyPlugin
 {
@@ -13,23 +14,25 @@ namespace MyPlugin
         public static MyPlugin Instance { get; private set; }
 
         public override string Name => "MyPlugin";
-        public override string Author => "pawelek7650"; 
-        public override Version Version => new Version(2, 0, 1); 
-        public override Version RequiredExiledVersion => new Version(9, 6, 0);
-
+        public override string Author => "pawelek7650";
+        public override Version Version => new Version(2, 0, 4);
+        public override Version RequiredExiledVersion => new Version(9, 12, 1, 0);
         public Dictionary<Player, ProjectMER.Features.Objects.SchematicObject> SchematicsToDestroyCommand { get; } =
             new Dictionary<Player, ProjectMER.Features.Objects.SchematicObject>();
 
         public override void OnEnabled()
         {
             Instance = this;
+
             RegisterEvents();
+            PlayerEv.Subscribe();
 
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
+            PlayerEv.Unsubscribe();
             UnRegisterEvents();
 
             foreach (var schematic in SchematicsToDestroyCommand.Values)
@@ -49,7 +52,7 @@ namespace MyPlugin
         {
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Player.Left += OnLeft;
-            Exiled.Events.Handlers.Player.Died += OnDied; 
+            Exiled.Events.Handlers.Player.Died += OnDied;
         }
 
         private void UnRegisterEvents()
@@ -95,9 +98,9 @@ namespace MyPlugin
                 if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] Found schematic for {ev.Player.Nickname}. Destroying...");
                 if (schematic != null && schematic.gameObject != null)
                 {
-                    schematic.Destroy(); 
+                    schematic.Destroy();
                 }
-                SchematicsToDestroyCommand.Remove(ev.Player); 
+                SchematicsToDestroyCommand.Remove(ev.Player);
                 if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] Schematic for {ev.Player.Nickname} destroyed.");
             }
             else

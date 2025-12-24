@@ -51,7 +51,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\..\Exiled (8)\EXILED\Plugins\dependencies\0Harmony.dll</HintPath>
+      <HintPath>..\..\..\MyPluginReSkintestNEW\MyPlugin.dll-master\ReSkin\bin\Debug\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>S:\SteamLibrary\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -59,50 +59,15 @@
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>S:\SteamLibrary\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="CommandSystem.Core">
-      <HintPath>S:\SteamLibrary\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\CommandSystem.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.API">
-      <HintPath>..\..\..\Exiled (8)\SCP Secret Laboratory\LabAPI\dependencies\global\Exiled.API.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CreditTags">
-      <HintPath>..\..\..\Exiled (8)\EXILED\Plugins\Exiled.CreditTags.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CustomItems">
-      <HintPath>..\..\..\Exiled (8)\EXILED\Plugins\Exiled.CustomItems.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CustomRoles">
-      <HintPath>..\..\..\Exiled (8)\EXILED\Plugins\Exiled.CustomRoles.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.Events">
-      <HintPath>..\..\..\Exiled (8)\EXILED\Plugins\Exiled.Events.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.Permissions">
-      <HintPath>..\..\..\Exiled (8)\EXILED\Plugins\Exiled.Permissions.dll</HintPath>
-    </Reference>
     <Reference Include="LabApi">
       <HintPath>S:\SteamLibrary\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\LabApi.dll</HintPath>
     </Reference>
     <Reference Include="Mirror">
       <HintPath>S:\SteamLibrary\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Mirror.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Posix">
-      <HintPath>..\..\..\Exiled (8)\SCP Secret Laboratory\LabAPI\dependencies\global\Mono.Posix.dll</HintPath>
-    </Reference>
-    <Reference Include="NorthwoodLib">
-      <HintPath>S:\SteamLibrary\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\NorthwoodLib.dll</HintPath>
-    </Reference>
-    <Reference Include="NotAnAPI">
-      <HintPath>..\..\..\MyPlugin\MyPlugin\bin\x64\Debug\NotAnAPI.dll</HintPath>
-    </Reference>
-    <Reference Include="ProjectMER">
-      <HintPath>..\..\..\..\Downloads\ProjectMER.dll</HintPath>
-    </Reference>
-    <Reference Include="RPNames">
-      <HintPath>..\..\..\RPNames.dll</HintPath>
-    </Reference>
-    <Reference Include="SemanticVersioning">
-      <HintPath>..\..\..\Exiled (8)\SCP Secret Laboratory\LabAPI\dependencies\global\SemanticVersioning.dll</HintPath>
+    <Reference Include="ProjectMER, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Documents\AI_FOLDER\Kiro\BetterCombatRP\bin\Release\net48\ProjectMER.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -124,6 +89,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Command\Check.cs" />
     <Compile Include="Command\Me.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="CustomThings\CustomItem1.cs" />
@@ -141,7 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ExMod.Exiled">
-      <Version>9.6.0</Version>
+      <Version>9.12.1</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.3</Version>

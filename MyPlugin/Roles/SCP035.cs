@@ -23,8 +23,7 @@ namespace MyPlugin.Roles
         public override string Name { get; set; } = "SCP-035";
 
         public override string Description { get; set; } =
-            "Jsi SCP-035\nVysoce korozivní viskózní tekutina neustále vytéká z děr pro oči a ústa SCP-035.\nJsi velmi agresivní vůči ostatnímu personálu.";
-
+        "You are SCP-035\nA highly corrosive viscous liquid is constantly oozing from SCP-035's eye and mouth holes.\nYou are very aggressive towards other personnel.";
         public override string CustomInfo { get; set; } = "SCP-035";
 
         public override bool KeepInventoryOnSpawn { get; set; } = true;
