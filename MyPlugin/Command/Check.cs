@@ -1,242 +1,165 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using CommandSystem;
-using Exiled.API.Features;
-using UnityEngine;
+using LabApi.Features;
+using LabApi.Loader;
 
-namespace MyPlugin.Command
+namespace MyPlugin.Command;
 
-// debug command for checking plugin status
+[CommandHandler(typeof(RemoteAdminCommandHandler))]
+[CommandHandler(typeof(GameConsoleCommandHandler))]
+public class Check : ICommand
 {
-    [CommandHandler(typeof(RemoteAdminCommandHandler))]
-    [CommandHandler(typeof(GameConsoleCommandHandler))]
-    public class MyPluginTest : ICommand
+    public string Command => "checkmp";
+    public string[] Aliases => System.Array.Empty<string>();
+    public string Description => "Check MyPlugin and LabAPI version";
+
+    public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
     {
-        public string Command => "testmp";
-        public string[] Aliases => System.Array.Empty<string>();
-        public string Description => "Diagnose MyPlugin configuration and dependencies";
+        var builder = new StringBuilder();
+        builder.AppendLine("=== MyPlugin Diagnostic ===\n");
 
-        public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
+        if (MyPlugin.Instance != null)
         {
-            var player = Player.Get(sender);
-            var builder = new StringBuilder();
-
-            builder.AppendLine("=== MyPlugin Diagnostic Test ===\n");
-
-            // 1. Plugin Instance Check
-            builder.AppendLine("1. Plugin Instance:");
-            if (MyPlugin.Instance != null)
-            {
-                builder.AppendLine($"   ✓ Instance exists");
-                builder.AppendLine($"   ✓ Version: {MyPlugin.Instance.Version}");
-                builder.AppendLine($"   ✓ Enabled: {MyPlugin.Instance.Config.IsEnabled}");
-                builder.AppendLine($"   ✓ Debug: {MyPlugin.Instance.Config.Debug}");
-            }
-            else
-            {
-                builder.AppendLine("   ✗ Instance is NULL - Plugin not loaded!");
-                response = builder.ToString();
-                return false;
-            }
-
-            // 2. Config Check
-            builder.AppendLine("\n2. Configuration:");
-            try
-            {
-                builder.AppendLine($"   ✓ Config loaded");
-                builder.AppendLine($"   ✓ Command Name: {MyPlugin.Instance.Config.emotes.CommandName}");
-                builder.AppendLine($"   ✓ Command Alias: {MyPlugin.Instance.Config.emotes.CommandAlias}");
-                builder.AppendLine($"   ✓ Permissions count: {MyPlugin.Instance.Config.emotes.Permission.Count}");
-            }
-            catch (Exception ex)
-            {
-                builder.AppendLine($"   ✗ Config error: {ex.Message}");
-            }
-
-            // 3. Exiled Version Check
-            builder.AppendLine("\n3. Exiled Version:");
-            try
-            {
-                var exiledVersion = Exiled.Loader.Loader.Version;
-                builder.AppendLine($"   Current version: {exiledVersion}");
-                builder.AppendLine($"   Required version: 9.12.1.0");
-
-                if (exiledVersion.ToString() == "9.12.1.0")
-                {
-                    builder.AppendLine($"   ✓ Compatible version");
-                }
-                else
-                {
-                    builder.AppendLine($"   ⚠ Version mismatch - May cause compatibility issues");
-                }
-            }
-            catch (Exception ex)
-            {
-                builder.AppendLine($"   ✗ Error checking Exiled version: {ex.Message}");
-            }
-
-            // 4. ProjectMER Check
-            builder.AppendLine("\n4. ProjectMER:");
-            try
-            {
-                var merAssembly = AppDomain.CurrentDomain.GetAssemblies()
-                    .FirstOrDefault(a => a.GetName().Name == "ProjectMER");
-
-                if (merAssembly != null)
-                {
-                    var merVersion = merAssembly.GetName().Version;
-                    var versionString = $"{merVersion.Major}.{merVersion.Minor}.{merVersion.Build}.{merVersion.Revision}.{merVersion.MinorRevision}";
-
-                    builder.AppendLine($"   ✓ ProjectMER loaded");
-                    builder.AppendLine($"   Current version: ... idk {merVersion.Major}.{merVersion.Minor}.{merVersion.Build}.{merVersion.Revision}.{merVersion.MinorRevision} ");
-                    builder.AppendLine($"   Required version: 2025.11.2.1");
-
-                    
-                }
-                else
-                {
-                    builder.AppendLine("   ✗ ProjectMER NOT found!");
-                    builder.AppendLine("   ! Install ProjectMER version 2025.11.2.1");
-                }
-            }
-            catch (Exception ex)
-            {
-                builder.AppendLine($"   ✗ Error checking ProjectMER: {ex.Message}");
-            }
-
-            // 5. Schematics Directory Check
-            builder.AppendLine("\n5. Schematics Directory:");
-            var schematicsDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "SCP Secret Laboratory", "LabAPI", "configs", "ProjectMER", "Schematics"
-            );
-
-            builder.AppendLine($"   Path: {schematicsDir}");
-
-            if (Directory.Exists(schematicsDir))
-            {
-                builder.AppendLine($"   ✓ Directory exists");
-
-                var directories = Directory.GetDirectories(schematicsDir);
-                builder.AppendLine($"   ✓ Subdirectories: {directories.Length}");
-
-                int schematicCount = 0;
-                int emoteCount = 0;
-
-                foreach (var dir in directories)
-                {
-                    var jsonFiles = Directory.GetFiles(dir, "*.json");
-                    schematicCount += jsonFiles.Length;
-                    emoteCount += jsonFiles.Count(f => Path.GetFileName(f).StartsWith("!"));
-                }
-
-                builder.AppendLine($"   ✓ Total JSON files: {schematicCount}");
-                builder.AppendLine($"   ✓ Emote files (starting with !): {emoteCount}");
-
-                if (emoteCount == 0)
-                {
-                    builder.AppendLine("   ⚠ No emote schematics found! Add files starting with '!'");
-                }
-            }
-            else
-            {
-                builder.AppendLine("   ✗ Directory does NOT exist!");
-                builder.AppendLine($"   ! Create: {schematicsDir}");
-            }
-
-            // 6. Player-Specific Check
-            if (player != null)
-            {
-                builder.AppendLine("\n6. Player Status:");
-                builder.AppendLine($"   ✓ Player: {player.Nickname}");
-                builder.AppendLine($"   ✓ Role: {player.Role.Type}");
-                builder.AppendLine($"   ✓ Position: {player.Position}");
-
-                // Check available emotes for player
-                builder.AppendLine("\n7. Available Emotes for Current Role:");
-                int availableEmotes = 0;
-
-                if (Directory.Exists(schematicsDir))
-                {
-                    foreach (var directoryPath in Directory.GetDirectories(schematicsDir))
-                    {
-                        foreach (var jsonFilePath in Directory.GetFiles(directoryPath)
-                                                         .Where(x => x.EndsWith(".json") && x.Contains('!')))
-                        {
-                            var fullFileName = Path.GetFileNameWithoutExtension(jsonFilePath);
-                            bool hasPermission = fullFileName.Contains("[NONE]");
-
-                            foreach (var permEntry in MyPlugin.Instance.Config.emotes.Permission)
-                            {
-                                if (fullFileName.Contains($"[{permEntry.Key}]") &&
-                                    permEntry.Value.Contains(player.Role.Type))
-                                {
-                                    hasPermission = true;
-                                    break;
-                                }
-                            }
-
-                            if (hasPermission)
-                            {
-                                availableEmotes++;
-                                string baseName = fullFileName;
-                                int bracketIndex = fullFileName.IndexOf('[');
-                                if (bracketIndex > 0)
-                                {
-                                    baseName = fullFileName.Substring(0, bracketIndex).Trim();
-                                }
-                                if (baseName.StartsWith("!"))
-                                {
-                                    baseName = baseName.Substring(1);
-                                }
-                                builder.AppendLine($"   - {baseName}");
-                            }
-                        }
-                    }
-                }
-
-                if (availableEmotes == 0)
-                {
-                    builder.AppendLine("   ⚠ No emotes available for your current role!");
-                }
-                else
-                {
-                    builder.AppendLine($"\n   ✓ Total available: {availableEmotes}");
-                }
-            }
-            else
-            {
-                builder.AppendLine("\n6. Player Status:");
-                builder.AppendLine("   ⚠ Command executed from console");
-            }
-
-            // 8. Active Schematics Check
-            builder.AppendLine("\n8. Active Schematics:");
-            if (MyPlugin.Instance.SchematicsToDestroyCommand != null)
-            {
-                builder.AppendLine($"   ✓ Dictionary exists");
-                builder.AppendLine($"   ✓ Active schematics: {MyPlugin.Instance.SchematicsToDestroyCommand.Count}");
-
-                foreach (var kvp in MyPlugin.Instance.SchematicsToDestroyCommand)
-                {
-                    builder.AppendLine($"   - {kvp.Key.Nickname}: {(kvp.Value != null ? "Active" : "NULL")}");
-                }
-            }
-            else
-            {
-                builder.AppendLine("   ✗ Dictionary is NULL!");
-            }
-
-            // Summary
-            builder.AppendLine("\n=== Summary ===");
-            builder.AppendLine("If all checks show ✓, the plugin should work correctly.");
-            builder.AppendLine("Any ✗ or ⚠ indicates potential issues.");
-
-            response = builder.ToString();
-            return true;
+            builder.AppendLine($"Plugin: {MyPlugin.Instance.Name} v{MyPlugin.Instance.Version}");
+            builder.AppendLine($"Enabled: {MyPlugin.Instance.Config.IsEnabled}");
         }
+        else
+        {
+            response = "Plugin not loaded!";
+            return false;
+        }
+
+        AppendLabApiStatus(builder);
+        AppendProjectMerStatus(builder);
+        AppendSchematicsStatus(builder);
+
+        builder.AppendLine($"\nActive: {MyPlugin.Instance.SchematicsToDestroyCommand.Count} emotes, {MyPlugin.Instance.WearableSchematics.Count} wearables");
+
+        response = builder.ToString();
+        return true;
+    }
+    private void AppendLabApiStatus(StringBuilder builder)
+    {
+        try
+        {
+            Version current = LabApiProperties.CurrentVersion;
+            builder.AppendLine($"\nLabAPI Current: {LabApiProperties.CompiledVersion}");
+
+            string latestTag = GetLatestGitHubTag("northwood-studios", "LabAPI");
+            if (latestTag != null)
+            {
+                builder.AppendLine($"LabAPI Latest: {latestTag}");
+                builder.AppendLine(VersionsAreEquivalent(current, latestTag) ? "Status: Up to date" : "Status: Update available");
+            }
+            else
+            {
+                builder.AppendLine("Could not fetch latest version from GitHub.");
+            }
+        }
+        catch (Exception ex)
+        {
+            builder.AppendLine($"\nLabAPI check error: {ex.Message}");
+        }
+    }
+
+    private void AppendProjectMerStatus(StringBuilder builder)
+    {
+        try
+        {
+            var merPlugin = PluginLoader.Plugins.Keys.FirstOrDefault(p => p.Name == "ProjectMER");
+
+            if (merPlugin == null)
+            {
+                builder.AppendLine("\nProjectMER: NOT found!");
+                return;
+            }
+
+            builder.AppendLine($"\nProjectMER Current: {merPlugin.Version}");
+
+            string latestTag = GetLatestGitHubTag("Michal78900", "ProjectMER");
+            if (latestTag != null)
+            {
+                builder.AppendLine($"ProjectMER Latest: {latestTag}");
+                builder.AppendLine(VersionsAreEquivalent(merPlugin.Version, latestTag) ? "Status: Up to date" : "Status: Update available");
+            }
+            else
+            {
+                builder.AppendLine("Could not fetch latest version from GitHub.");
+            }
+        }
+        catch (Exception ex)
+        {
+            builder.AppendLine($"\nProjectMER check error: {ex.Message}");
+        }
+    }
+
+    private void AppendSchematicsStatus(StringBuilder builder)
+    {
+        if (!Directory.Exists(PluginUtils.SchematicsDir))
+        {
+            builder.AppendLine("\nSchematics directory not found!");
+            return;
+        }
+
+        int emoteCount = 0;
+        int wearableCount = 0;
+
+        foreach (var dir in Directory.GetDirectories(PluginUtils.SchematicsDir))
+        {
+            var files = Directory.GetFiles(dir, "*.json");
+            wearableCount += files.Count(f => Path.GetFileName(f).StartsWith("!") && f.Contains("[WEAR]"));
+            emoteCount += files.Count(f => Path.GetFileName(f).StartsWith("!") && !f.Contains("[WEAR]"));
+        }
+
+        builder.AppendLine($"\nSchematics: {emoteCount} emotes, {wearableCount} wearables");
+    }
+
+    private string GetLatestGitHubTag(string owner, string repo)
+    {
+        try
+        {
+            using var client = new WebClient();
+            client.Headers.Add("User-Agent", "MyPlugin-VersionCheck");
+            string html = client.DownloadString($"https://github.com/{owner}/{repo}/releases");
+
+            var match = Regex.Match(html, $@"<a[^>]*href=""/{Regex.Escape(owner)}/{Regex.Escape(repo)}/releases/tag/([^""]+)""");
+            return match.Success ? match.Groups[1].Value : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private bool VersionsAreEquivalent(Version current, string latestTag)
+    {
+        string cleanTag = latestTag.TrimStart('v', 'V');
+
+        int[] latestParts = cleanTag.Split('.')
+            .Select(p => int.TryParse(p, out int n) ? n : 0)
+            .ToArray();
+
+        int[] currentParts =
+        {
+            current.Major,
+            current.Minor,
+            current.Build < 0 ? 0 : current.Build,
+            current.Revision < 0 ? 0 : current.Revision,
+        };
+
+        int length = Math.Max(latestParts.Length, currentParts.Length);
+        for (int i = 0; i < length; i++)
+        {
+            int a = i < currentParts.Length ? currentParts[i] : 0;
+            int b = i < latestParts.Length ? latestParts[i] : 0;
+            if (a != b) return false;
+        }
+
+        return true;
     }
 }

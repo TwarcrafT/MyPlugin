@@ -1,133 +1,145 @@
-﻿using Exiled.API.Features;
-using Exiled.Events.EventArgs.Player;
+﻿using InventorySystem.Items.Jailbird;
+using InventorySystem.Items.Scp1509;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Features.Console;
+using LabApi.Features.Wrappers;
 using UnityEngine;
-using MyPlugin;
-using Exiled.API.Enums;
+using Logger = LabApi.Features.Console.Logger;
 
 namespace MyPlugin.EventHandlers;
 
 public static class PlayerEv
 {
-    public static void Subscribe()
+    public static void OnInteractingDoor(PlayerInteractingDoorEventArgs ev)
     {
-        Exiled.Events.Handlers.Player.ChangedItem += OnChangedItem;
-        Exiled.Events.Handlers.Player.InteractingDoor += OnInteractingDoor;
-    }
-
-    public static void Unsubscribe()
-    {
-        Exiled.Events.Handlers.Player.ChangedItem -= OnChangedItem;
-        Exiled.Events.Handlers.Player.InteractingDoor -= OnInteractingDoor;
-    }
-
-    private static void OnChangedItem(ChangedItemEventArgs ev)
-    {
-        if (!MyPlugin.Instance.Config.keycardInfo.IsEnabled)
         {
-            ev.Player?.ShowHint("", 0.1f);
-            return;
-        }
-
-        if (ev.Item == null || ev.Player == null)
-        {
-            ev.Player?.ShowHint("", 0.1f);
-            return;
-        }
-
-        var config = MyPlugin.Instance.Config.keycardInfo;
-        if (ev.Item.IsKeycard)
-        {
-            ushort keycardSerial = ev.Item.Serial;
-            string ownerName = "Brak Właściciela";
-
-            if (!config.KeycardOwners.ContainsKey(keycardSerial))
+            if (!ev.IsAllowed || !MyPlugin.Instance.Config.DoorBtnCfg.EnabledRaycast)
             {
-                config.KeycardOwners[keycardSerial] = ev.Player.DisplayNickname;
-                ownerName = ev.Player.DisplayNickname;
-            }
-            else
-            {
-                config.KeycardOwners.TryGetValue(keycardSerial, out ownerName);
+                return;
             }
 
-            if (config.KeycardMessages.TryGetValue(ev.Item.Type, out string messageTemplate))
+            if (!Physics.Raycast(ev.Player.Camera.transform.position, ev.Player.Camera.transform.forward,
+                out var raycastHit, 30f, ~(1 << 1 | 1 << 13 | 1 << 16 | 1 << 28)))
             {
-                string finalMessage = messageTemplate.Replace("%owner", ownerName);
-                ev.Player.ShowHint(finalMessage, config.HintDuration);
+                ev.IsAllowed = false;
+                if (!MyPlugin.Instance.Config.DoorBtnCfg.EnabledHints)
+                {
+                    ev.Player.SendHint(MyPlugin.Instance.Config.DoorBtnCfg.DeclineMessage, 5);
+                }
+                return;
             }
-            else
+            // Log the object name what the raycast hit, the distance, and the hit point
+            Logger.Debug($"[DEBUG] Raycast hit object: {raycastHit.collider.gameObject.name}");
+            Logger.Debug($"[DEBUG] Hit distance: {raycastHit.distance}");
+            Logger.Debug($"[DEBUG] Hit point: {raycastHit.point}");
+
+            bool isButton = raycastHit.collider.gameObject.name.Contains("TouchScreenPanel") ||
+                           raycastHit.collider.gameObject.name.Contains("collider") ||
+                           raycastHit.collider.gameObject.name.Contains("CheckpointKeycardScreen") ||
+                           raycastHit.collider.gameObject.name.Contains("HczButton") ||
+                           raycastHit.collider.gameObject.name.Contains("TouchScreenPanel(1)") ||
+                           raycastHit.collider.gameObject.name.Contains("HczButton(1)") ||
+                           raycastHit.collider.gameObject.name.Contains("CheckpointKeycardScreen(1)") ||
+                           raycastHit.collider.gameObject.name.Contains("KeycardScanner(1)") ||
+                           raycastHit.collider.gameObject.name.Contains("KeycardScanner");
+            ev.IsAllowed = isButton;
+
+            if (MyPlugin.Instance.Config.DoorBtnCfg.EnabledHints)
             {
-                ev.Player.ShowHint("", 0.1f);
+                if (ev.IsAllowed)
+                {
+                    ev.Player.SendHint(MyPlugin.Instance.Config.DoorBtnCfg.SuccessMessage, 5);
+                }
+                else
+                {
+                    ev.Player.SendHint(MyPlugin.Instance.Config.DoorBtnCfg.DeclineMessage, 5);
+                }
             }
-        }
-        else
-        {
-            ev.Player.ShowHint("", 0.1f);
         }
     }
 
-    private static void OnInteractingDoor(InteractingDoorEventArgs ev)
+    public static void OnChangingRole(PlayerChangingRoleEventArgs ev)
     {
-        Log.Debug($"[DEBUG] OnInteractingDoor triggered for player {ev.Player.Nickname}");
+        MyPlugin.Instance.RemovePlayerSchematics(ev.Player);
+    }
 
-        if (!ev.IsAllowed)
-        {
-            Log.Debug($"[DEBUG] Door interaction not allowed initially for {ev.Player.Nickname}");
+    public static void OnLeft(PlayerLeftEventArgs ev)
+    {
+        MyPlugin.Instance.RemovePlayerSchematics(ev.Player);
+    }
+
+    public static void OnDied(PlayerDeathEventArgs ev)
+    {
+        MyPlugin.Instance.RemovePlayerSchematics(ev.Player);
+    }
+
+    public static void OnPlayerHurting(PlayerHurtingEventArgs ev)
+    {
+        // TODO : Handle player hurting event if needed
+    }
+
+    public static void OnJumped(PlayerJumpedEventArgs ev)
+    {
+        if (!MyPlugin.Instance.WearableSchematics.ContainsKey(ev.Player))
             return;
-        }
 
-        if (!MyPlugin.Instance.Config.doorButtonOpen.EnabledRaycast)
-        {
-            Log.Debug($"[DEBUG] doorButtonOpen.EnabledRaycast is disabled");
+        var timings = MyPlugin.Instance.Config.WearableCfg.Timings;
+        MyPlugin.Instance.PlayerJumpAnimation[ev.Player] = true;
+        MyPlugin.Instance.JumpCooldowns[ev.Player] = Time.time + timings.JumpDuration;
+    }
+
+    public static void OnShootingWeapon(PlayerShootingWeaponEventArgs ev)
+    {
+        if (!MyPlugin.Instance.WearableSchematics.ContainsKey(ev.Player))
             return;
-        }
 
-        Log.Debug($"[DEBUG] Starting raycast for player {ev.Player.Nickname}");
-        Log.Debug($"[DEBUG] Camera position: {ev.Player.CameraTransform.position}");
-        Log.Debug($"[DEBUG] Camera forward: {ev.Player.CameraTransform.forward}");
+        var item = ev.Player.CurrentItem;
+        var animCfg = PluginUtils.GetAnimationNames(ev.Player);
+        string animationToPlay = animCfg.AttackFirearm;
+        TriggerAttack(ev.Player, animationToPlay);
+    }
 
-        if (!Physics.Raycast(ev.Player.CameraTransform.position, ev.Player.CameraTransform.forward,
-            out var raycastHit, 30f, ~(1 << 1 | 1 << 13 | 1 << 16 | 1 << 28)))
-        {
-            Log.Debug($"[DEBUG] Raycast failed - no hit detected for {ev.Player.Nickname}");
-            ev.IsAllowed = false;
-            if (!MyPlugin.Instance.Config.doorButtonOpen.DisableHints)
-                ev.Player.ShowHint(MyPlugin.Instance.Config.doorButtonOpen.DeclineMessage, 5);
+    public static void OnJailbirdMessage(PlayerProcessedJailbirdMessageEventArgs ev)
+    {
+        if (!MyPlugin.Instance.WearableSchematics.ContainsKey(ev.Player))
             return;
-        }
-
-        Log.Debug($"[DEBUG] Raycast hit object: {raycastHit.collider.gameObject.name}");
-        Log.Debug($"[DEBUG] Hit distance: {raycastHit.distance}");
-        Log.Debug($"[DEBUG] Hit point: {raycastHit.point}");
-
-        bool isButton = raycastHit.collider.gameObject.name.Contains("TouchScreenPanel") ||
-                       raycastHit.collider.gameObject.name.Contains("collider") ||
-                       raycastHit.collider.gameObject.name.Contains("CheckpointKeycardScreen") ||
-                       raycastHit.collider.gameObject.name.Contains("HczButton") ||
-                       raycastHit.collider.gameObject.name.Contains("TouchScreenPanel(1)") ||
-                       raycastHit.collider.gameObject.name.Contains("HczButton(1)") ||
-                       raycastHit.collider.gameObject.name.Contains("CheckpointKeycardScreen(1)") ||
-                       raycastHit.collider.gameObject.name.Contains("KeycardScanner(1)") ||
-                       raycastHit.collider.gameObject.name.Contains("KeycardScanner");
-
-        Log.Debug($"[DEBUG] Is button detected: {isButton}");
-
-        ev.IsAllowed = isButton;
-
-        if (!MyPlugin.Instance.Config.doorButtonOpen.DisableHints)
+        if (ev.Message == JailbirdMessageType.AttackTriggered)
         {
-            if (ev.IsAllowed)
+            var item = ev.Player.CurrentItem;
+            var animCfg = PluginUtils.GetAnimationNames(ev.Player);
+            string animationToPlay = animCfg.AttackJailbird;
+            if (item != null && item.IsEquipped)
             {
-                Log.Debug($"[DEBUG] Showing success message to {ev.Player.Nickname}");
-                ev.Player.ShowHint(MyPlugin.Instance.Config.doorButtonOpen.SuccessMessage, 5);
-            }
-            else
-            {
-                Log.Debug($"[DEBUG] Showing decline message to {ev.Player.Nickname}");
-                ev.Player.ShowHint(MyPlugin.Instance.Config.doorButtonOpen.DeclineMessage, 5);
+                TriggerAttack(ev.Player, animationToPlay);
             }
         }
+    }
 
-        Log.Debug($"[DEBUG] Final ev.IsAllowed: {ev.IsAllowed}");
+    public static void OnScp1509Message(PlayerProcessedScp1509MessageEventArgs ev)
+    {
+        if (!MyPlugin.Instance.WearableSchematics.ContainsKey(ev.Player))
+            return;
+        if (ev.Message == Scp1509MessageType.AttackTriggered)
+        {
+            var item = ev.Player.CurrentItem;
+            var animCfg = PluginUtils.GetAnimationNames(ev.Player);
+            string animationToPlay = animCfg.Attack1509;
+            if (item != null && item.IsEquipped)
+            {
+                TriggerAttack(ev.Player, animationToPlay);
+            }
+        }
+    }
+
+    public static void OnUsedItem(PlayerUsedItemEventArgs ev)
+    {
+        // TODO: Handle item usage if needed
+    }
+
+    public static void TriggerAttack(Player player, string animationName)
+    {
+        var timings = MyPlugin.Instance.Config.WearableCfg.Timings;
+        MyPlugin.Instance.PlayerAttackAnimation[player] = animationName;
+        MyPlugin.Instance.AttackCooldowns[player] = Time.time + timings.AttackDuration;
     }
 }

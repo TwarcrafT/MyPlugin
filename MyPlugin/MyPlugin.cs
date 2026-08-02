@@ -1,113 +1,154 @@
-﻿using System;
-using Exiled.API.Features;
-using Exiled.API.Interfaces;
-using System.Collections.Generic;
+﻿using CommandSystem.Commands.Shared;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Handlers;
+using LabApi.Features.Console;
+using LabApi.Features.Enums;
+using LabApi.Features.Wrappers;
+using LabApi.Loader;
+using LabApi.Loader.Features.Plugins;
+using MEC;
+using MyPlugin.Command;
 using MyPlugin.EventHandlers;
-
-using Exiled.Events.EventArgs.Player;
+using ProjectMER.Features.Objects;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using Logger = LabApi.Features.Console.Logger;
 
-namespace MyPlugin
+namespace MyPlugin;
+
+public class MyPlugin : Plugin<Config>
 {
-    public class MyPlugin : Plugin<Config>
+    public static MyPlugin Instance { get; private set; }
+
+    public override string Name => "MyPlugin";
+    public override string Author => "pawelek7650";
+    public override Version Version => new Version(2, 0, 5);
+    public override string Description => "MyPlugin is aimed at bringing some RP features for players";
+    public override Version RequiredApiVersion => new Version(1, 1, 7);
+
+    public Dictionary<Player, SchematicObject> SchematicsToDestroyCommand { get; } = new();
+    public Dictionary<Player, SchematicObject> WearableSchematics { get; } = new();
+    public Dictionary<Player, string> WearableSchematicNames { get; } = new();
+    public Dictionary<Player, CoroutineHandle> WearableCoroutines { get; } = new();
+
+    public Dictionary<Player, string> PlayerAttackAnimation { get; } = new();
+    public Dictionary<Player, float> AttackCooldowns { get; } = new();
+
+    public Dictionary<Player, bool> PlayerJumpAnimation { get; } = new();
+    public Dictionary<Player, float> JumpCooldowns { get; } = new();
+
+    public Dictionary<Player, List<AnimationClip>> EmoteAnimationClips { get; } = new();
+    public Dictionary<Player, float> EmoteAnimationCooldowns { get; } = new();
+
+    public override void Enable()
     {
-        public static MyPlugin Instance { get; private set; }
+        Instance = Instance ?? this;
 
-        public override string Name => "MyPlugin";
-        public override string Author => "pawelek7650";
-        public override Version Version => new Version(2, 0, 4);
-        public override Version RequiredExiledVersion => new Version(9, 12, 1, 0);
-        public Dictionary<Player, ProjectMER.Features.Objects.SchematicObject> SchematicsToDestroyCommand { get; } =
-            new Dictionary<Player, ProjectMER.Features.Objects.SchematicObject>();
+        Me expressCommand = new Me();
+        Me.Register(expressCommand, expressCommand, CommandType.Client);
 
-        public override void OnEnabled()
+        Wear wearCommand = new Wear();
+        Wear.Register(wearCommand, wearCommand, CommandType.RemoteAdmin);
+
+        SSSCustomAnimations.Register();
+        EmoteSSSAnimations.Register();
+
+        PlayerEvents.ChangingRole += PlayerEv.OnChangingRole;
+        PlayerEvents.Left += PlayerEv.OnLeft;
+        PlayerEvents.Death += PlayerEv.OnDied;
+        PlayerEvents.InteractingDoor += PlayerEv.OnInteractingDoor;
+        PlayerEvents.Hurting += PlayerEv.OnPlayerHurting;
+        PlayerEvents.Jumped += PlayerEv.OnJumped;
+        PlayerEvents.UsedItem += PlayerEv.OnUsedItem;
+        PlayerEvents.ShootingWeapon += PlayerEv.OnShootingWeapon;
+        PlayerEvents.ProcessedJailbirdMessage += PlayerEv.OnJailbirdMessage;
+        PlayerEvents.ProcessedScp1509Message += PlayerEv.OnScp1509Message;
+    }
+
+    public override void Disable()
+    {
+        PlayerEvents.ChangingRole -= PlayerEv.OnChangingRole;
+        PlayerEvents.Left -= PlayerEv.OnLeft;
+        PlayerEvents.Death -= PlayerEv.OnDied;
+        PlayerEvents.InteractingDoor -= PlayerEv.OnInteractingDoor;
+        PlayerEvents.Hurting -= PlayerEv.OnPlayerHurting;
+        PlayerEvents.Jumped -= PlayerEv.OnJumped;
+        PlayerEvents.UsedItem -= PlayerEv.OnUsedItem;
+        PlayerEvents.ShootingWeapon -= PlayerEv.OnShootingWeapon;
+        PlayerEvents.ProcessedJailbirdMessage -= PlayerEv.OnJailbirdMessage;
+        PlayerEvents.ProcessedScp1509Message -= PlayerEv.OnScp1509Message;
+
+        SSSCustomAnimations.Unregister();
+        EmoteSSSAnimations.Unregister();
+
+        foreach (var player in WearableSchematics.Keys.Concat(SchematicsToDestroyCommand.Keys).Distinct().ToList())
+            PlayerSSSSync.Clear(player);
+
+        foreach (var schematic in SchematicsToDestroyCommand.Values)
         {
-            Instance = this;
+            if (schematic != null && schematic.gameObject != null)
+                schematic.Destroy();
+        }
+        SchematicsToDestroyCommand.Clear();
 
-            RegisterEvents();
-            PlayerEv.Subscribe();
+        foreach (var kvp in WearableSchematics)
+        {
+            if (kvp.Value != null && kvp.Value.gameObject != null)
+                kvp.Value.Destroy();
+        }
+        WearableSchematics.Clear();
+        WearableSchematicNames.Clear();
 
-            base.OnEnabled();
+        foreach (var coroutine in WearableCoroutines.Values)
+        {
+            Timing.KillCoroutines(coroutine);
+        }
+        WearableCoroutines.Clear();
+
+        PlayerAttackAnimation.Clear();
+        AttackCooldowns.Clear();
+        PlayerJumpAnimation.Clear();
+        JumpCooldowns.Clear();
+
+        EmoteAnimationClips.Clear();
+        EmoteAnimationCooldowns.Clear();
+
+        Instance = null;
+    }
+
+    public void RemovePlayerSchematics(Player player)
+    {
+        if (SchematicsToDestroyCommand.TryGetValue(player, out SchematicObject s1))
+        {
+            if (s1 != null && s1.gameObject != null)
+                s1.Destroy();
+            SchematicsToDestroyCommand.Remove(player);
         }
 
-        public override void OnDisabled()
+        if (WearableSchematics.TryGetValue(player, out SchematicObject s2))
         {
-            PlayerEv.Unsubscribe();
-            UnRegisterEvents();
-
-            foreach (var schematic in SchematicsToDestroyCommand.Values)
-            {
-                if (schematic != null && schematic.gameObject != null)
-                {
-                    schematic.Destroy();
-                }
-            }
-            SchematicsToDestroyCommand.Clear();
-
-            Instance = null;
-            base.OnDisabled();
+            if (s2 != null && s2.gameObject != null)
+                s2.Destroy();
+            WearableSchematics.Remove(player);
         }
 
-        private void RegisterEvents()
+        if (WearableCoroutines.TryGetValue(player, out var coroutine))
         {
-            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
-            Exiled.Events.Handlers.Player.Left += OnLeft;
-            Exiled.Events.Handlers.Player.Died += OnDied;
+            Timing.KillCoroutines(coroutine);
+            WearableCoroutines.Remove(player);
         }
 
-        private void UnRegisterEvents()
-        {
-            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
-            Exiled.Events.Handlers.Player.Left -= OnLeft;
-            Exiled.Events.Handlers.Player.Died -= OnDied;
-        }
+        WearableSchematicNames.Remove(player);
+        EmoteAnimationClips.Remove(player);
+        EmoteAnimationCooldowns.Remove(player);
 
+        PlayerSSSSync.Refresh(player);
 
-        private void OnChangingRole(ChangingRoleEventArgs ev)
-        {
-            if (SchematicsToDestroyCommand.TryGetValue(ev.Player, out ProjectMER.Features.Objects.SchematicObject schematic))
-            {
-                if (schematic != null && schematic.gameObject != null)
-                {
-                    schematic.Destroy();
-                }
-                SchematicsToDestroyCommand.Remove(ev.Player);
-                if (Config.Debug) Log.Debug($"[MyPlugin] [OnChangingRole] Destroyed schematic for {ev.Player.Nickname} due to role change.");
-            }
-        }
-
-        private void OnLeft(LeftEventArgs ev)
-        {
-            if (SchematicsToDestroyCommand.TryGetValue(ev.Player, out ProjectMER.Features.Objects.SchematicObject schematic))
-            {
-                if (schematic != null && schematic.gameObject != null)
-                {
-                    schematic.Destroy();
-                }
-                SchematicsToDestroyCommand.Remove(ev.Player);
-                if (Config.Debug) Log.Debug($"[MyPlugin] [OnLeft] Destroyed schematic for {ev.Player.Nickname} due to leaving.");
-            }
-        }
-
-        private void OnDied(DiedEventArgs ev)
-        {
-            if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] Player {ev.Player.Nickname} ({ev.Player.Id}) died. Checking for schematic.");
-
-            if (SchematicsToDestroyCommand.TryGetValue(ev.Player, out ProjectMER.Features.Objects.SchematicObject schematic))
-            {
-                if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] Found schematic for {ev.Player.Nickname}. Destroying...");
-                if (schematic != null && schematic.gameObject != null)
-                {
-                    schematic.Destroy();
-                }
-                SchematicsToDestroyCommand.Remove(ev.Player);
-                if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] Schematic for {ev.Player.Nickname} destroyed.");
-            }
-            else
-            {
-                if (Config.Debug) Log.Debug($"[MyPlugin] [OnDied] No schematic found for {ev.Player.Nickname}.");
-            }
-        }
-
+        PlayerAttackAnimation.Remove(player);
+        AttackCooldowns.Remove(player);
+        PlayerJumpAnimation.Remove(player);
+        JumpCooldowns.Remove(player);
     }
 }

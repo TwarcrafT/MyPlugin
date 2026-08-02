@@ -1,0 +1,6 @@
+<Project>
+	<PropertyGroup>
+		<SCPSL_PATH>C:\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed</SCPSL_PATH>
+		<OTHER_PATH>C:\Users\Karol\Desktop\Depediences</OTHER_PATH>
+	</PropertyGroup>
+</Project>
