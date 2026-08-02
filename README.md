@@ -6,8 +6,6 @@ https://github.com/Michal78900/ProjectMER
 
 ### Description
 MyPlugin is aimed at bringing some RP features for players.
-I might want to add later pickups that will change you to some role
-- RP servers use this as they're way to give roles to players.
 Features can be edited or added by suggestion of players so 100% suggest something I might make it.
 
 This plugin is mainly for RP servers without developers.
@@ -24,7 +22,7 @@ It will show avalible emotes.
 * How to add custom emote?
 You simply add them by having somewhere in your schematic name `!` and permission at the end `[Perm]`.
 
-How can I change permission of Emote?
+* How can I change permission of Emote?
 You can change it by adding somewhere in your schematic name letters like in example:
 
 * This could only use Class-D
@@ -48,15 +46,41 @@ You can change it by adding somewhere in your schematic name letters like in exa
 [SCP] SCP have access to use the Emote
 more permissions can be added/edit
 ```
+* Animations?
+If schematic have animations, they will be displayed in SSS(Server-specific)
+SSS only appear when command are used.
+There you can bind keys to play it.
+
+
+### Wearable
+
+Equip custom schematics onto players as wearable models with automatic animations (Idle, Walk, Run, Crouch, Jump, Fall, Attack).
+In Config, you can change names of animations for each schematic if needed.
+
+* To manage wearables, type `.wear` (or `.wearables`) into the RemoteAdmin.
+It will show usage instructions and available schematics.
+
+* **Usage:**
+  * `.wear <schematic_name>` – Equip a wearable schematic on yourself.
+  * `.wear <PlayerID> <schematic_name>` – Equip a wearable schematic on another player.
+  * `.wear del` – Remove your current wearable.
+  * `.wear <PlayerID> del` – Remove a wearable from a specific player.
+
+* **How to add a wearable?**
+Simply add `!`  and `[WEAR]` tag to your schematic name:
+
+* Addictional Animations?
+If schematic have animations, they will be displayed in SSS(Server-specific)
+SSS only appear when command are used.
+There you can bind keys to play it.
+
+* The greatest tester is Dummy.
 
 
 ### Door Opening
-Doors are only openable while looking at the door button.
-
-### Keycard information
-You can make people see information who is the owner of keycards
+If in config "enabled_raycast" is True,
+Any doors will only be openable while looking at the door button.
 
 ### Oryginal Author
 https://github.com/Saskyc/MyPlugin.dll
 
-I got green light to update this plugin
