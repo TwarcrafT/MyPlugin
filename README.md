@@ -78,8 +78,7 @@ There you can bind keys to play it.
 
 
 ### Door Opening
-If in config "enabled_raycast" is True,
-Any doors will only be openable while looking at the door button.
+If enabled, players are required to look at KeyPadPanel to interact with door
 
 ### Oryginal Author
 https://github.com/Saskyc/MyPlugin.dll
