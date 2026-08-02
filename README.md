@@ -52,7 +52,7 @@ SSS only appear when command are used.
 There you can bind keys to play it.
 
 
-### Wearable
+### Wearables
 
 Equip custom schematics onto players as wearable models with automatic animations (Idle, Walk, Run, Crouch, Jump, Fall, Attack).
 In Config, you can change names of animations for each schematic if needed.
