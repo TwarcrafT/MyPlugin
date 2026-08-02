@@ -57,6 +57,8 @@ There you can bind keys to play it.
 Equip custom schematics onto players as wearable models with automatic animations (Idle, Walk, Run, Crouch, Jump, Fall, Attack).
 In Config, you can change names of animations for each schematic if needed.
 
+Example: https://medal.tv/games/scp-secret-laboratory/clips/neZTQp7wyoJcQBz0L?invite=cr-MSxuS1IsMjQ5Njg2ODQ1
+
 * To manage wearables, type `.wear` (or `.wearables`) into the RemoteAdmin.
 It will show usage instructions and available schematics.
 
