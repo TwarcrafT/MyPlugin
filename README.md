@@ -80,6 +80,9 @@ There you can bind keys to play it.
 ### Door Opening
 If enabled, players are required to look at KeyPadPanel to interact with door
 
+### Check command
+* Is for testing if you have latest ProjectMer / LabApi...
+
 ### Oryginal Author
 https://github.com/Saskyc/MyPlugin.dll
 
