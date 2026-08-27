@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -37,6 +37,7 @@ public class Check : ICommand
         AppendLabApiStatus(builder);
         AppendProjectMerStatus(builder);
         AppendSchematicsStatus(builder);
+        AppendMyPluginStatus(builder);
 
         builder.AppendLine($"\nActive: {MyPlugin.Instance.SchematicsToDestroyCommand.Count} emotes, {MyPlugin.Instance.WearableSchematics.Count} wearables");
 
@@ -66,7 +67,29 @@ public class Check : ICommand
             builder.AppendLine($"\nLabAPI check error: {ex.Message}");
         }
     }
+    private void AppendMyPluginStatus(StringBuilder builder)
+    {
+        try
+        {
+            Version current = MyPlugin.Instance.Version;
+            builder.AppendLine($"\nMyPlugin Current: {MyPlugin.Instance.Version}");
 
+            string latestTag = GetLatestGitHubTag("TwarcrafT", "MyPlugin");
+            if (latestTag != null)
+            {
+                builder.AppendLine($"MyPlugin Latest: {latestTag}");
+                builder.AppendLine(VersionsAreEquivalent(current, latestTag) ? "Status: Up to date" : "Status: Update available");
+            }
+            else
+            {
+                builder.AppendLine("Could not fetch latest version from GitHub.");
+            }
+        }
+        catch (Exception ex)
+        {
+            builder.AppendLine($"\nMyPlugin check error: {ex.Message}");
+        }
+    }
     private void AppendProjectMerStatus(StringBuilder builder)
     {
         try
