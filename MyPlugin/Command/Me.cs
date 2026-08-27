@@ -1,4 +1,5 @@
-﻿using CommandSystem;
+using CommandSystem;
+using LabApi.Features.Console;
 using LabApi.Features.Enums;
 using MyPlugin.EventHandlers;
 using ProjectMER.Features;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using Logger = LabApi.Features.Console.Logger;
 using Player = LabApi.Features.Wrappers.Player;
 
 namespace MyPlugin.Command;
@@ -47,7 +49,6 @@ public class Me : ICommand
         var argumentsProvided = string.Join(" ", arguments);
         string schematicNameForLookup = $"!{argumentsProvided}";
         string schematicToUse = FindSchematicWithPermission(schematicNameForLookup, player);
-
         if (string.IsNullOrEmpty(schematicToUse))
         {
             response = MyPlugin.Instance.Config.EmotesCfg.NoPermission;
@@ -71,6 +72,7 @@ public class Me : ICommand
     {
         var builder = new StringBuilder();
         builder.Append(MyPlugin.Instance.Config.EmotesCfg.ListOfAnimations);
+        Logger.Error($"Listing emotes for player {player.Nickname} with role {player.Role}");
 
         var displayedBaseNames = new HashSet<string>();
         bool foundAnySchematic = false;
@@ -79,12 +81,12 @@ public class Me : ICommand
         {
             if (!HasPermission(fullName, player))
                 continue;
-
             if (displayedBaseNames.Add(baseName))
             {
                 builder.AppendLine();
                 builder.Append($"- {baseName}");
                 foundAnySchematic = true;
+                Logger.Debug($"Found schematic {fullName} for player {player.Nickname} with role {player.Role}");
             }
         }
 
@@ -96,12 +98,15 @@ public class Me : ICommand
         if (fileName.Contains("[NONE]")) return true;
         foreach (var permEntry in MyPlugin.Instance.Config.EmotesCfg.Permission)
         {
+            Logger.Debug($"Checking permission for {fileName} against role {player.Role} with key {permEntry.Key}");
             if (fileName.Contains($"[{permEntry.Key}]") && permEntry.Value.Contains(player.Role))
-                return true;
+            {
+                Logger.Debug($"Permission granted for {fileName} to player {player.Nickname} with role {player.Role}");
+                return true;  
+            }
         }
         return false;
     }
-
     private string FindSchematicWithPermission(string lookupPrefix, Player player)
     {
         return PluginUtils.EnumerateSchematics()
