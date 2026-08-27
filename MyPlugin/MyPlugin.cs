@@ -143,6 +143,8 @@ public class MyPlugin : Plugin<Config>
         WearableSchematicNames.Remove(player);
         EmoteAnimationClips.Remove(player);
         EmoteAnimationCooldowns.Remove(player);
+        
+        player.DisableEffect<Fade>();
 
         PlayerSSSSync.Refresh(player);
 
