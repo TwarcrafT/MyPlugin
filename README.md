@@ -83,8 +83,9 @@ There you can bind keys to play it.
 If enabled, players are required to look at KeyPadPanel to interact with door
 
 ### Check command
-* Is for testing if you have latest ProjectMer / LabApi...
-
+"checkmp"
+* Is for testing if you have latest ProjectMer / MyPlugin
+  
 ### Oryginal Author
 https://github.com/Saskyc/MyPlugin.dll
 
