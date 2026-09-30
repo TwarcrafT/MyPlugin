@@ -69,11 +69,11 @@ It will show usage instructions and available schematics.
   * `.wear <PlayerID> del` – Remove a wearable from a specific player.
 
 * **How to add a wearable?**
-Simply add `!`  and `[WEAR]` tag to your schematic name:
+Simply add `!`  and `[WEAR]` tag to your schematic name. Example: !Test[WEAR]
 
 * Addictional Animations?
-If schematic have animations, they will be displayed in SSS(Server-specific)
-SSS only appear when command are used.
+If schematic have addictional animations, they will be displayed in SSS(Server-specific)
+SSS only appear when you have wearable.
 There you can bind keys to play it.
 
 * The greatest tester is Dummy.
