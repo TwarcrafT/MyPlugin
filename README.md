@@ -72,7 +72,7 @@ It will show usage instructions and available schematics.
 Simply add `!`  and `[WEAR]` tag to your schematic name. Example: !Test[WEAR]
 
 * Addictional Animations?
-If schematic have addictional animations, they will be displayed in SSS(Server-specific)
+If schematic have addictional animations, they will be displayed in SSS(Server-Specific-Settings)
 SSS only appear when you have wearable.
 There you can bind keys to play it.
 
